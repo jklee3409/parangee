@@ -1,0 +1,44 @@
+# Dependencies and package-manager caches
+node_modules/
+.npm/
+.pnpm-store/
+
+# Logs and Node.js diagnostic reports
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+report.*.json
+
+# Local environment files (keep shareable examples)
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Test output and temporary caches
+coverage/
+.nyc_output/
+.cache/
+*.tsbuildinfo
+tmp/
+temp/
+
+# Local editor and operating-system files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# dist/ contains the application source; keep it tracked.
+# .openai/hosting.json is shared static-hosting configuration; keep it tracked.
+# Keep package-manager lockfiles tracked if dependencies are added.
