@@ -4,7 +4,7 @@
 
 ## 바로 실행
 
-Node.js 18 이상에서 프로젝트 폴더를 열고 실행합니다. 패키지 설치가 필요 없습니다.
+Node.js 22 이상에서 프로젝트 폴더를 열고 실행합니다. 웹 화면만 실행할 때는 패키지 설치가 필요 없습니다.
 
 ```sh
 npm start
@@ -50,7 +50,38 @@ model.start();   // 재개
 model.destroy(); // 화면 제거 시 이벤트와 애니메이션 정리
 ```
 
-React에서는 마운트 후 생성하고 effect 정리 함수에서 `destroy()`를 호출하면 됩니다. 네이티브 앱은 별도 프로젝트가 필요하며 이 웹앱을 WebView에 연결할 수 있습니다. 이 패키지는 APK/IPA가 아닙니다.
+React에서는 마운트 후 생성하고 effect 정리 함수에서 `destroy()`를 호출하면 됩니다. Android 앱은 아래 Capacitor 프로젝트로 빌드할 수 있습니다.
+
+## Android 앱 빌드
+
+Capacitor 8을 사용해 `dist/`를 앱 내부 WebView에서 실행합니다. 웹 파일이 APK에 포함되므로 별도 웹 서버 없이 실행됩니다. 현재 앱에는 LLM·STT 모델이 포함되어 있지 않습니다.
+
+- 앱 이름: 파랑이 말랑이
+- 앱 ID: `com.jklee3409.parang`
+- 앱 버전: `1.1.0` (versionCode 1)
+- 최소 지원: Android 7.0 / API 24
+- 빌드 환경: Node.js 22 이상, JDK 21, Android SDK Platform 36 및 Build Tools 35.0.0
+
+처음 저장소를 내려받았다면 `npm ci`로 의존성을 설치합니다. Android Studio의 SDK Manager에서 필요한 SDK를 설치하고, `JAVA_HOME`을 JDK 21 경로로 설정합니다. SDK 경로는 `ANDROID_HOME` 환경변수 또는 `android/local.properties`의 `sdk.dir`로 지정합니다.
+
+```sh
+npm ci
+npm run android:build
+```
+
+Windows PowerShell에서 실행 정책 때문에 npm 실행이 막히면 `npm.cmd`를 사용하세요.
+
+빌드 명령은 웹 파일을 Android 프로젝트에 동기화한 뒤 Debug APK를 생성합니다.
+
+```text
+android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+APK를 Android 휴대폰으로 옮겨 설치하거나, USB 디버깅을 켜고 `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`로 설치할 수 있습니다. 직접 APK를 여는 경우 해당 파일 앱의 '알 수 없는 앱 설치' 허용이 필요할 수 있습니다. Debug APK는 개발 확인용입니다.
+
+Android Studio에서 열려면 `npm run android:open`, 웹 파일만 다시 복사하려면 `npm run android:sync`를 실행합니다. `dist/` 수정 후 APK에 반영하려면 `npm run android:build`로 다시 빌드하고 재설치하세요.
+
+이 PC에 준비한 로컬 도구는 `tmp/android-tools/`에 있습니다. 빌드 스크립트는 해당 폴더의 JDK를 우선 사용하며, SDK 환경변수가 없으면 로컬 SDK를 사용합니다. Gradle 캐시는 기본적으로 `.gradle/`에 저장합니다. 이 도구와 캐시, APK, 복사된 웹 파일은 Git에서 제외되므로 다른 PC에서는 개발 환경을 별도로 준비해야 합니다.
 
 ## 동작 및 설계
 
