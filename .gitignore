@@ -24,6 +24,9 @@ coverage/
 *.tsbuildinfo
 tmp/
 temp/
+.gradle/
+*.jks
+*.keystore
 
 # Local editor and operating-system files
 .idea/
