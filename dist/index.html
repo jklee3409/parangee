@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="천천히 숨 쉬고, 누르면 말랑하게 움직이는 파랑이.">
+  <title>파랑이 말랑이</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%231687ce'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <main>
+    <button class="parang" id="parang" type="button" aria-label="파랑이 누르기. 마우스나 손가락으로 누르거나 끌어보세요. 키보드는 스페이스 또는 엔터를 사용하세요.">
+      <img src="./assets/parang.png" width="1327" height="1186" alt="" fetchpriority="high" draggable="false">
+      <canvas aria-hidden="true"></canvas>
+    </button>
+  </main>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>

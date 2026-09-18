@@ -1,0 +1,11 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: #fff; }
+body { min-height: 100svh; }
+main { min-height: 100svh; display: grid; place-items: center; padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+.parang { display: block; border: 0; padding: 0; background: transparent; position: relative; width: min(580px, 100%, calc((100svh - 32px) * 1327 / 1186)); aspect-ratio: 1327 / 1186; overflow: hidden; border-radius: 20px; cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent; }
+.parang:focus-visible { outline: 3px solid #1687ce; outline-offset: 5px; }
+.parang[data-pressed="true"] { cursor: grabbing; }
+.parang img, .parang canvas { display: block; width: 100%; height: 100%; }
+.parang img { object-fit: contain; }
+.parang canvas { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+.parang[data-ready="true"] canvas { opacity: 1; }
