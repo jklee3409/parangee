@@ -1,21 +1,24 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#ffffff">
-  <meta name="description" content="천천히 숨 쉬고, 누르면 말랑하게 움직이는 파랑이.">
-  <title>파랑이 말랑이</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='14' fill='%231687ce'/%3E%3C/svg%3E">
-  <link rel="stylesheet" href="./styles.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#f6f8fb"><meta name="description" content="꾹 누르고, 쭉 늘리고, 포근하게 쉬어 가요. 내 손안의 퍼렁이 말랑이."><title>퍼렁이 · 내 손안의 말랑이</title><link rel="icon" href="data:,"><link rel="stylesheet" href="./styles.css">
 </head>
 <body>
-  <main>
-    <button class="parang" id="parang" type="button" aria-label="파랑이 누르기. 마우스나 손가락으로 누르거나 끌어보세요. 키보드는 스페이스 또는 엔터를 사용하세요.">
-      <img src="./assets/parang.png" width="1327" height="1186" alt="" fetchpriority="high" draggable="false">
-      <canvas aria-hidden="true"></canvas>
-    </button>
-  </main>
-  <script type="module" src="./app.js"></script>
-</body>
-</html>
+<main class="app">
+<header class="topbar"><a class="brand" href="./"><span class="brand-dot"></span>퍼렁이<span class="brand-sub">말랑한 쉼표</span></a><button id="settings-open" class="icon-button" aria-label="감각 설정 열기" aria-haspopup="dialog">☷</button></header>
+<section class="playroom" aria-label="퍼렁이와 놀기">
+<div class="intro"><span class="eyebrow">YOUR LITTLE SOFT MOMENT</span><h1>오늘도, 말랑하게.</h1><p>아무 생각 없이 꾹. 퍼렁이가 곁에 있어요.</p></div>
+<div class="stage"><div id="bubble" class="bubble" role="status" aria-live="polite"></div>
+<button class="parang" id="parang" type="button" aria-label="퍼렁이 말랑이. 누르거나 드래그해서 늘려 보세요. 키보드는 스페이스 또는 엔터로 누를 수 있어요."><img src="./assets/parang.png" width="1327" height="1186" alt="파란 몸과 동그란 눈, 작은 손과 꼬리를 가진 퍼렁이" fetchpriority="high" draggable="false"><canvas aria-hidden="true"></canvas></button>
+<span class="stage-note" aria-hidden="true">조물조물, 마음까지 부드러워져요</span></div>
+<p class="touch-hint"><span></span>꾹 누르고 <b>·</b> 쭉 당기고 <b>·</b> 톡 놓아 보세요</p>
+<div class="actions" aria-label="퍼렁이 동작"><button id="squish" class="action"><span class="action-icon">◎</span><span>말랑말랑</span><small>기분 좋은 조물조물</small></button><button id="jump" class="action"><span class="action-icon">↟</span><span>폴짝!</span><small>신나게 뛰어올라요</small></button><button id="wave" class="action"><span class="action-icon">☺</span><span>애교</span><small>도리도리, 발그레</small></button></div>
+</section><footer>서두르지 않아도 괜찮아 <span>·</span> 잠깐의 말랑한 시간</footer>
+</main>
+<dialog id="settings" aria-labelledby="settings-title"><div class="dialog-heading"><div><span class="eyebrow">MAKE YOURSELF COMFORTABLE</span><h2 id="settings-title">나만의 말랑함</h2></div><button id="settings-close" class="icon-button" aria-label="설정 닫기">×</button></div>
+<label class="setting"><span>손끝의 진동<small id="haptic-help">누를 때도, 착지할 때도 부드럽게</small></span><input id="haptics" type="checkbox" role="switch" checked></label>
+<label class="setting"><span>말랑한 소리<small>작고 포근한 소리로 더 생생하게</small></span><input id="sound" type="checkbox" role="switch"></label>
+<label class="setting"><span>차분한 움직임<small>점프와 흔들림을 작게 줄여요</small></span><input id="calm" type="checkbox" role="switch"></label>
+<label class="softness-label" for="softness">말랑함 <output id="softness-value">폭신폭신</output></label><input id="softness" type="range" min="0" max="2" step="1" value="1"><div class="range-labels"><span>탱글탱글</span><span>폭신폭신</span><span>몰랑몰랑</span></div><p class="settings-note">지금의 설정은 이 기기에만 기억해 둘게요.</p></dialog>
+<script type="module" src="./app.js"></script>
+</body></html>

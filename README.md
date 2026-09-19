@@ -1,101 +1,53 @@
-# 파랑이 말랑이 · v1.1
+# 퍼렁이 말랑이 · v2.0
 
-기존 2D 디자인의 자동 호흡에 누르기·끌기·탄성 복원을 추가한 정적 웹앱입니다. 마우스와 터치를 지원하며, 파랑이에 키보드 포커스를 둔 상태에서 스페이스/엔터를 눌러도 작동합니다. 아직 실제 호스팅에는 배포하지 않았습니다.
+채팅이나 대화 입력 없이 퍼렁이를 누르고, 늘리고, 함께 노는 작은 말랑이 앱입니다. **기존 `dist/assets/parang.png`를 그대로 사용합니다.** 캐릭터를 새로 생성하거나 눈·얼굴·색·몸·꼬리의 디자인을 교체하지 않았습니다. 원래 프로젝트는 3D 모델 파일이 아닌 음영이 있는 2D 이미지 기반이며, 원본 텍스처의 메시 변형으로 동작합니다.
 
-## 바로 실행
+## 실행
 
-Node.js 22 이상에서 프로젝트 폴더를 열고 실행합니다. 웹 화면만 실행할 때는 패키지 설치가 필요 없습니다.
+Node.js 22 이상에서 `npm start`를 실행한 뒤 http://localhost:4173 을 엽니다. 웹 실행에는 의존성 설치나 별도 빌드가 필요하지 않습니다. `dist/`가 소스이자 정적 배포 파일입니다. ES 모듈이므로 파일을 더블클릭하지 말고 서버로 실행하세요.
 
-```sh
-npm start
-```
+## 놀이
 
-브라우저에서 http://localhost:4173 을 엽니다. ES 모듈을 사용하므로 index.html을 더블클릭하는 대신 로컬 서버 또는 정적 호스팅을 사용하세요.
+- **직접 누르기**: 누른 지점을 중심으로 압축되고 옆으로 퍼집니다. 길게 누르면 더 깊이 눌리고 천천히 복원되는 잔류 변형이 생깁니다.
+- **당기기**: 마우스·손가락으로 잡아당기면 그 부위가 따라옵니다. 이동 범위를 완만하게 제한해 과도한 당김에 메시가 뒤집히지 않도록 했습니다. 펜은 압력도 반영합니다.
+- **놓기**: 감쇠 스프링과 전파되는 잔물결이 형태를 복원합니다.
+- **말랑말랑**: 자동으로 누른 뒤 놓습니다. 키보드는 캐릭터에 포커스하고 Space/Enter를 누르고 놓으세요.
+- **폴짝!**: 웅크림 → 도약 → 공중 자세 → 착지 → 반동이 이어집니다. 착지 순간 진동과 소리가 발생합니다.
+- **애교**: 어깨와 몸통을 흔들지 않고 고개를 최대 약 3°만 천천히 좌우로 돌립니다. 머리 외곽의 회전 변형은 고정하고 얼굴 안쪽에만 약한 원근감을 적용해 도리도리 느낌을 표현합니다. 미소와 느린 눈 깜빡임에 맞춰 양 볼에 옅은 분홍빛이 나타나며, 작은 고개 인사 후 원래 자세로 돌아갑니다. 볼의 색은 움직이는 얼굴을 따라가고 애교가 끝나면 완전히 사라집니다. 말풍선에는 `(˶ᵔ ᵕ ᵔ˶) ♡` 같은 귀여운 이모티콘을 띄우며 사용자 입력이나 채팅 기록은 없습니다.
 
-## 배포
+설정에서 진동, 소리, 차분한 움직임, 3단계 말랑함을 조절합니다. 설정만 이 기기의 localStorage에 저장합니다. 소리는 기본으로 꺼져 있습니다. OS의 움직임 줄이기 설정도 반영합니다.
 
-`dist/`는 소스이자 완성된 배포 결과물입니다. **별도 빌드가 필요 없습니다.** 정적 호스팅의 공개 폴더로 `dist`를 지정하거나 그 안의 파일을 그대로 업로드하세요. 빌드 명령은 비워두면 됩니다. 상대 경로를 사용하여 하위 경로에서도 배포할 수 있습니다. 해당 경로는 `/parang/`처럼 끝에 슬래시가 있는 URL로 접근하세요.
+## 렌더링과 수명 주기
 
-배포할 파일:
+`parang-breathing.js`는 최대 1/120초 단위로 스프링을 적분합니다. `mesh-renderer.js`는 64×60 셀의 원본 이미지 메시를 WebGL로 한 번에 그립니다. 최대 60fps를 목표로 하며 실제 성능은 기기에 따라 달라집니다. WebGL이 없으면 Canvas 2D 30fps로 대체하고, 두 방식 모두 없으면 원본 이미지가 남습니다. GPU context loss 시 원본 이미지를 보여주고 복구 시 다시 초기화합니다.
 
-```text
-dist/
-  index.html
-  styles.css
-  app.js
-  parang-breathing.js
-  assets/parang.png
-```
+누름·당김·도약·인사 모두 얼굴과 몸은 원본 텍스처를 사용합니다. 인사는 팔 분리나 배경 복원 없이 연속된 메시만 변형합니다. `greeting-motion.js`에서 고개·입꼬리·눈매와 별도 투명 레이어의 볼 홍조를 제어하며, 원본 이미지는 변경하지 않습니다. 이미지 자체에 배경과 그림자가 포함되어 있으므로 독립적인 3D 관절이나 조명 시뮬레이션은 아닙니다. 탭 숨김·포커스 이탈·설정 열기에는 놀이와 감각 피드백을 중지합니다.
 
-런타임 외부 라이브러리, CDN, API, 환경변수는 필요하지 않습니다. `scripts/serve.mjs`는 로컬 확인용 서버이며 배포 서버로 실행할 필요가 없습니다.
+## 햅틱과 소리
 
-## 다른 앱에 붙이기
+`SquishyHapticsPlugin.java`는 Android 진동 모터를 사용합니다. 누름, 늘어남, 복원, 점프, 착지, 인사마다 짧고 반복되지 않는 진동 패턴을 적용합니다. 진폭 제어가 없는 기기에는 짧은 기본 진동을 사용하고 시스템 햅틱 설정을 존중합니다. 백그라운드 전환 시 취소합니다.
 
-`parang-breathing.js`는 프레임워크에 의존하지 않는 렌더러입니다. `img`와 `canvas`가 있는 button 컨테이너를 전달하세요. 버튼의 접근성 이름과 styles.css의 touch-action/focus-visible 규칙도 유지하세요. 이미지와 CSS도 함께 옮깁니다.
+브라우저는 지원되는 경우 Vibration API를 사용합니다. iOS Safari 등 미지원 환경에서는 진동을 사용할 수 없다는 안내를 표시합니다. 웹에서 API가 있어도 OS·브라우저 정책에 따라 진동하지 않을 수 있습니다. 소리는 외부 파일 없이 Web Audio로 합성합니다. **실제 진동의 느낌과 기기별 성능은 Android 실기기 검증이 필요합니다.**
 
-```js
-import { ParangBreathing } from './parang-breathing.js';
+## Android
 
-const model = new ParangBreathing(container, {
-  period: 4200,       // 한 번의 호흡 주기, 밀리초
-  expansion: 0.075,   // 배 팽창 계수
-  lift: 0.012,        // 상체 상승 계수
-  fps: 30,
-});
+앱 ID: `com.jklee3409.parang` · 이름: 퍼렁이 말랑이 · 버전: 2.0.0 (2)
 
-model.squeeze(0.51, 0.53); // 코드로 누르기 (0~1 정규화 좌표)
-model.release();           // 누르기 해제
-model.pause();   // 명시적으로 정지
-model.start();   // 재개
-model.destroy(); // 화면 제거 시 이벤트와 애니메이션 정리
-```
+1. Node.js 22 이상, JDK 21, Android SDK Platform 36 및 Build Tools 35.0.0을 준비합니다.
+2. `JAVA_HOME`과 `ANDROID_HOME`을 지정하거나 `android/local.properties`에 `sdk.dir`을 설정합니다.
+3. `npm ci` 후 `npm run android:build`를 실행합니다. Windows 실행 정책이 막으면 `npm.cmd`를 사용하세요.
+4. 결과는 `android/app/build/outputs/apk/debug/app-debug.apk`입니다.
 
-React에서는 마운트 후 생성하고 effect 정리 함수에서 `destroy()`를 호출하면 됩니다. Android 앱은 아래 Capacitor 프로젝트로 빌드할 수 있습니다.
+`npm run android:sync`로 웹 파일을 복사하고 `npm run android:open`으로 Android Studio를 열 수 있습니다. 웹 자산은 APK에 포함되어 서버 없이 동작합니다.
 
-## Android 앱 빌드
+## 검증
 
-Capacitor 8을 사용해 `dist/`를 앱 내부 WebView에서 실행합니다. 웹 파일이 APK에 포함되므로 별도 웹 서버 없이 실행됩니다. 현재 앱에는 LLM·STT 모델이 포함되어 있지 않습니다.
+`npm test`는 원본 이미지 보존, 여러 프레임 간격과 말랑함의 복원 안정성, 강한 당김과 동작 전체 구간의 메시 뒤집힘, 착지 이벤트 중복 방지, 차분한 모션, 중단 및 자동 해제를 검사합니다. 자동 검사는 실제 화면의 미감·촉감을 대신하지 않습니다.
 
-- 앱 이름: 파랑이 말랑이
-- 앱 ID: `com.jklee3409.parang`
-- 앱 버전: `1.1.0` (versionCode 1)
-- 최소 지원: Android 7.0 / API 24
-- 빌드 환경: Node.js 22 이상, JDK 21, Android SDK Platform 36 및 Build Tools 35.0.0
+## 참고
 
-처음 저장소를 내려받았다면 `npm ci`로 의존성을 설치합니다. Android Studio의 SDK Manager에서 필요한 SDK를 설치하고, `JAVA_HOME`을 JDK 21 경로로 설정합니다. SDK 경로는 `ANDROID_HOME` 환경변수 또는 `android/local.properties`의 `sdk.dir`로 지정합니다.
+- [Squishy Magic](https://apps.apple.com/us/app/squishy-magic-asmr-toy-maker/id1490398089): 누르기·늘리기·느린 복원과 소리를 결합한 놀이 참고.
+- [Antistress](https://www.jindoblu.com/antistress-relaxation-toys/): 단순하고 즉각적인 장난감 상호작용 참고.
+- [Android custom haptic effects](https://developer.android.com/develop/ui/views/haptics/custom-haptic-effects): 진폭 지원 여부에 맞춘 짧은 진동 설계 참고.
 
-```sh
-npm ci
-npm run android:build
-```
-
-Windows PowerShell에서 실행 정책 때문에 npm 실행이 막히면 `npm.cmd`를 사용하세요.
-
-빌드 명령은 웹 파일을 Android 프로젝트에 동기화한 뒤 Debug APK를 생성합니다.
-
-```text
-android/app/build/outputs/apk/debug/app-debug.apk
-```
-
-APK를 Android 휴대폰으로 옮겨 설치하거나, USB 디버깅을 켜고 `adb install -r android/app/build/outputs/apk/debug/app-debug.apk`로 설치할 수 있습니다. 직접 APK를 여는 경우 해당 파일 앱의 '알 수 없는 앱 설치' 허용이 필요할 수 있습니다. Debug APK는 개발 확인용입니다.
-
-Android Studio에서 열려면 `npm run android:open`, 웹 파일만 다시 복사하려면 `npm run android:sync`를 실행합니다. `dist/` 수정 후 APK에 반영하려면 `npm run android:build`로 다시 빌드하고 재설치하세요.
-
-이 PC에 준비한 로컬 도구는 `tmp/android-tools/`에 있습니다. 빌드 스크립트는 해당 폴더의 JDK를 우선 사용하며, SDK 환경변수가 없으면 로컬 SDK를 사용합니다. Gradle 캐시는 기본적으로 `.gradle/`에 저장합니다. 이 도구와 캐시, APK, 복사된 웹 파일은 Git에서 제외되므로 다른 PC에서는 개발 환경을 별도로 준비해야 합니다.
-
-## 동작 및 설계
-
-- 2D 이미지의 메시를 변형해 숨쉬기와 눌림을 표현합니다. 누르고 있는 동안 호흡 강도를 낮추고, 놓으면 탄성 복원과 함께 자연스럽게 이어집니다.
-- 기기의 동작 줄이기가 켜져 있으면 복원의 튕김을 줄입니다. 호흡 자체는 요청대로 유지합니다.
-- 로고를 제거한 1327×1186 무손실 PNG를 사용합니다. 캔버스는 실제 표시 크기 × 기기 픽셀 비율(최대 3배, 너비 최대 2048px)로 렌더링하고 창 크기와 픽셀 비율 변경을 반영합니다. 이미지 자체의 세부 정보는 원본 자산 해상도에 한정됩니다.
-- 4.2초 주기로 자동 재생합니다. 사용자가 요청한 핵심 기능이므로 기기의 동작 줄이기 설정에서도 숨쉬기는 유지합니다.
-- 숨겨진 탭이나 화면 밖에서는 정지하고, 돌아오면 재개합니다.
-- 이미지가 준비되기 전이나 Canvas를 사용할 수 없는 경우 로고가 제거된 정적 이미지가 표시됩니다.
-- 모바일과 데스크톱 크기에 맞춰 비율을 유지합니다.
-- 불필요한 사용자 데이터 저장, 추적, 네트워크 요청은 없습니다.
-
-사용자 제공 캐릭터 이미지가 포함되어 있습니다. 원본 이미지의 권리는 기존 권리자에게 있습니다.
-
-## 이미지 편집 기록
-
-내장 이미지 편집 기능으로 우측 하단 표시를 제거했습니다. 편집 지시: “Remove ONLY the tiny pale four-point sparkle/logo in the lower right corner, seamlessly reconstructing the plain gray backdrop. Preserve the character, face, pose, color, lighting, framing and aspect ratio. No redesign, cropping, added objects or text.” 프로젝트 내 최종 자산은 `dist/assets/parang.png`입니다.
+이미지 권리는 기존 권리자에게 있습니다. 원본 이미지의 변경은 없습니다.

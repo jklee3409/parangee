@@ -1,6 +1,6 @@
 {
-  "name": "parang-breathing-app",
-  "version": "1.1.0",
+  "name": "parangee-squishy-app",
+  "version": "2.0.0",
   "private": true,
   "type": "module",
   "scripts": {
@@ -8,7 +8,8 @@
     "dev": "node scripts/serve.mjs",
     "android:sync": "cap sync android",
     "android:open": "cap open android",
-    "android:build": "node scripts/build-android.mjs"
+    "android:build": "node scripts/build-android.mjs",
+    "test": "node --test tests/*.test.mjs"
   },
   "engines": {
     "node": ">=22"

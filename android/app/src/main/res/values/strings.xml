@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">파랑이 말랑이</string>
-    <string name="title_activity_main">파랑이 말랑이</string>
+    <string name="app_name">퍼렁이 말랑이</string>
+    <string name="title_activity_main">퍼렁이 말랑이</string>
     <string name="package_name">com.jklee3409.parang</string>
     <string name="custom_url_scheme">com.jklee3409.parang</string>
 </resources>
