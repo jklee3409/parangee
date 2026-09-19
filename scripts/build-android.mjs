@@ -31,7 +31,7 @@ function run(command, args, cwd) {
 
 run(process.execPath, [path.join(root, 'node_modules', '@capacitor', 'cli', 'bin', 'capacitor'), 'sync', 'android'], root);
 if (process.platform === 'win32') {
-  run(env.ComSpec || 'cmd.exe', ['/d', '/c', 'gradlew.bat', 'assembleDebug', '--no-daemon'], path.join(root, 'android'));
+  run(env.ComSpec || 'cmd.exe', ['/d', '/c', '.\\gradlew.bat', 'assembleDebug', '--no-daemon'], path.join(root, 'android'));
 } else {
   run('sh', ['./gradlew', 'assembleDebug', '--no-daemon'], path.join(root, 'android'));
 }
