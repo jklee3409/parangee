@@ -2,7 +2,7 @@
 import { MeshRenderer } from './mesh-renderer.js';
 import { characterTexture } from './character-texture.js';
 import { sleepyPose } from './idle-motion.js';
-import { TouchGesture, reactionPose } from './touch-reactions.js';
+import { reactionPose } from './touch-reactions.js';
 import { greetingPose, restingGreeting, deformGreeting, drawCheekBlush, drawSmileMouth, GREETING_DURATION } from './greeting-motion.js';
 export class ParangBreathing {
   constructor(element, { period = 4200, expansion = 0.035, lift = 0.009, fps = 60 } = {}) {
@@ -48,7 +48,6 @@ export class ParangBreathing {
     this.rippleAge = 0;
     this.action = null;
     this.reaction = null;
-    this.gesture = null;
     this.pose = { squash: 0, lift: 0, tilt: 0, wave: 0 };
     this.greeting = restingGreeting();
     this.autoRelease = 0;
@@ -103,12 +102,11 @@ export class ParangBreathing {
       this.pointer = e.pointerId;
       element.setPointerCapture(e.pointerId);
       this.squeeze(x, y);
-      this.gesture = new TouchGesture([x, y], e.timeStamp);
       this.pressure = e.pointerType === 'pen' ? Math.max(.3, e.pressure * 1.4) : 1;
     });
     listen(element, 'pointermove', (e) => {
       if (!this.down || this.pointer !== e.pointerId) return;
-      this.moveTouch(position(e), e.timeStamp);
+      this.moveTouch(position(e));
       if (e.pointerType === 'pen') this.pressure = Math.max(.3, e.pressure * 1.4);
     });
     for (const name of ['pointerup', 'pointercancel', 'lostpointercapture']) {
@@ -135,18 +133,7 @@ export class ParangBreathing {
     if (this.image.complete) this.onLoad();
   }
 
-  moveTouch(p, time) {
-    const kind = this.gesture?.move(p, time);
-    if (kind) {
-      if (this.reaction?.type !== kind) {
-        this.reaction = { type: kind, start: this.elapsed, until: this.elapsed + 900 };
-        this.say(kind === 'pet' ? '손길이 포근해… ♡' : '히히, 간지러워!');
-        this.emit('wave', .45);
-      }
-      this.reaction.until = this.elapsed + 900;
-      this.dragTarget = [0, 0];
-      return;
-    }
+  moveTouch(p) {
     this.dragTarget = p.map((v, i) => Math.tanh((v - this.point[i]) * 4) * .12);
     const stretch = Math.hypot(...this.dragTarget);
     if (Math.abs(stretch - this.lastStretch) > .035) {
@@ -177,6 +164,13 @@ export class ParangBreathing {
   play(type) {
     if (!this.ready || !this.running || this.destroyed || this.down || this.action) return false;
     if (type === 'squish') { this.squeeze(); this.autoRelease = this.elapsed + 700; return true; }
+    if (['pet', 'tickle'].includes(type)) {
+      this.wake();
+      this.reaction = { type, start: this.elapsed, until: this.elapsed + 3000 };
+      this.say(type === 'pet' ? '손길이 포근해… ♡' : '히히, 간지러워!');
+      this.emit('wave', .45);
+      return true;
+    }
     if (!['jump', 'wave'].includes(type)) return false;
     this.wake();
     this.action = { type, start: this.elapsed, landed: false };
@@ -187,7 +181,6 @@ export class ParangBreathing {
   squeeze(x = 0.51, y = 0.53) {
     if (!this.ready || this.destroyed || !this.running) return;
     this.wake(true);
-    this.gesture = null;
     this.point = [x, y];
     this.action = null;
     if (!this.reaction) this.say('');
@@ -202,7 +195,6 @@ export class ParangBreathing {
     this.emit('press');
   }
   release(silent = false) {
-    this.gesture = null;
     if (silent && this.reaction) { this.reaction = null; this.say(''); }
     const wasDown = this.down;
     const pointer = this.pointer;
@@ -272,8 +264,7 @@ export class ParangBreathing {
       if (this.touchBlush < .001) this.touchBlush = 0;
       this.rippleAge += dt;
       const k = this.reduced ? 180 : [145, 95,  65][this.softness], damping = this.reduced ? 29 : [14, 10, 8][this.softness];
-      const gentle = this.reaction && ['pet', 'tickle'].includes(this.reaction.type);
-      const target = this.down ? (gentle ? .10 : this.pressure * (.75 + .25 * (1 - Math.exp(-this.held * 3)))) : 0;
+      const target = this.down ? this.pressure * (.75 + .25 * (1 - Math.exp(-this.held * 3))) : 0;
       this.velocity += ((target - this.press) * k - this.velocity * damping) * dt;
       this.press += this.velocity * dt;
       this.memory += ((this.down ? this.press * .23 : 0) - this.memory) * (this.down ? 4 : [5, 3, 1.8][this.softness]) * dt;

@@ -6,12 +6,12 @@
 </head>
 <body>
 <main class="app">
-<header class="topbar"><a class="brand" href="./"><span class="brand-dot" aria-hidden="true"></span>퍼렁이</a><div class="topbar-actions"><button id="help-open" class="icon-button help-button" aria-label="퍼렁이 놀이 안내 열기" aria-haspopup="dialog" aria-controls="play-guide"><span aria-hidden="true">?</span></button><button id="theme-toggle" class="icon-button" aria-label="다크 모드" aria-pressed="false"><span class="theme-icon" aria-hidden="true">☾</span></button><button id="settings-open" class="icon-button" aria-label="감각 설정 열기" aria-haspopup="dialog"><span aria-hidden="true">☷</span></button></div></header>
+<header class="topbar"><a class="brand" href="./"><span class="brand-dot" aria-hidden="true"></span>퍼렁이</a><div class="topbar-actions"><button id="theme-toggle" class="icon-button" aria-label="다크 모드" aria-pressed="false"><span class="theme-icon" aria-hidden="true">☾</span></button><button id="settings-open" class="icon-button" aria-label="감각 설정 열기" aria-haspopup="dialog"><span aria-hidden="true">☷</span></button></div></header>
 <section class="playroom" aria-label="퍼렁이와 놀기">
 <div class="stage">
 <button class="parang" id="parang" type="button" aria-label="퍼렁이 말랑이. 누르거나 드래그해서 늘려 보세요. 키보드는 스페이스 또는 엔터로 누를 수 있어요."><img src="./assets/parang.png" width="1327" height="1186" alt="파란 몸과 동그란 눈, 작은 손과 꼬리를 가진 퍼렁이" fetchpriority="high" draggable="false"><canvas aria-hidden="true"></canvas><span class="speech" role="status" aria-live="polite"></span></button>
 </div>
-<div class="actions" aria-label="퍼렁이 동작"><button id="squish" class="action"><span class="action-icon" aria-hidden="true">◎</span><span>말랑말랑</span></button><button id="jump" class="action"><span class="action-icon" aria-hidden="true">↟</span><span>폴짝!</span></button><button id="wave" class="action"><span class="action-icon" aria-hidden="true">♡</span><span>애교</span></button></div>
+<div class="actions" aria-label="퍼렁이 동작"><button id="squish" class="action"><span class="action-icon" aria-hidden="true">◎</span><span>말랑말랑</span></button><button id="jump" class="action"><span class="action-icon" aria-hidden="true">↟</span><span>폴짝!</span></button><button id="wave" class="action"><span class="action-icon" aria-hidden="true">♡</span><span>애교</span></button><button id="pet" class="action" aria-label="머리 쓰다듬기"><span class="action-icon" aria-hidden="true">🫳</span><span>쓰담쓰담</span></button><button id="tickle" class="action" aria-label="배 간지럽히기"><span class="action-icon" aria-hidden="true">〰</span><span>간질간질</span></button></div>
 </section>
 </main>
 <dialog id="settings" aria-labelledby="settings-title"><div class="dialog-heading"><h2 id="settings-title">설정</h2><button id="settings-close" class="icon-button" aria-label="설정 닫기">×</button></div>
@@ -19,31 +19,6 @@
 <label class="setting"><span>말랑한 소리<small>작고 포근한 소리로 더 생생하게</small></span><input id="sound" type="checkbox" role="switch"></label>
 <label class="setting"><span>차분한 움직임<small>점프와 흔들림을 작게 줄여요</small></span><input id="calm" type="checkbox" role="switch"></label>
 <label class="softness-label" for="softness">말랑함 <output id="softness-value">폭신폭신</output></label><input id="softness" type="range" min="0" max="2" step="1" value="1"><div class="range-labels"><span>탱글탱글</span><span>폭신폭신</span><span>몰랑몰랑</span></div><p class="settings-note">지금의 설정은 이 기기에만 기억해 둘게요.</p></dialog>
-<dialog id="play-guide" class="play-guide" aria-labelledby="guide-title" aria-describedby="guide-intro">
-  <div class="guide-top"><span class="guide-eyebrow">작은 손길, 커다란 행복</span><button id="help-close" class="icon-button" aria-label="놀이 안내 닫기" autofocus>×</button></div>
-  <h2 id="guide-title">퍼렁이와 친해지는 법</h2>
-  <p id="guide-intro">말하지 않아도 좋아요.<br>손끝으로 마음을 전해 주세요.</p>
-  <div class="guide-pages">
-    <section class="guide-page" aria-labelledby="guide-touch-title">
-      <div class="guide-banner"><span aria-hidden="true">🫳</span><div><small>손끝으로 교감해요</small><h3 id="guide-touch-title">쓰담쓰담, 간질간질</h3></div><span class="guide-spark" aria-hidden="true">✧</span></div>
-      <div class="guide-card"><span class="guide-mark" aria-hidden="true">↔</span><div><h4>머리를 천천히 쓰다듬어요</h4><p>이마 위를 누른 채 부드럽게 쓸어 보세요.<br>눈을 살며시 감고 꼬리를 살랑거려요.</p></div></div>
-      <div class="guide-card pink"><span class="guide-mark" aria-hidden="true">〰</span><div><h4>배를 좌우로 간질여요</h4><p>동그란 배를 짧게 두세 번 문질러 보세요.<br>히히! 작은 웃음이 터져 나와요.</p></div></div>
-      <p class="guide-tip">꾹 누르거나 한 번 쭉 당기면 말랑하게 늘어나요.</p>
-    </section>
-    <section class="guide-page" aria-labelledby="guide-actions-title" hidden>
-      <div class="guide-banner"><span aria-hidden="true">♡</span><div><small>기분 좋은 순간을 함께</small><h3 id="guide-actions-title">세 가지 작은 놀이</h3></div><span class="guide-spark" aria-hidden="true">✧</span></div>
-      <div class="guide-card"><span class="guide-mark" aria-hidden="true">◎</span><div><h4>말랑말랑</h4><p>폭신하게 눌렸다가 천천히 돌아와요.</p></div></div>
-      <div class="guide-card lavender"><span class="guide-mark" aria-hidden="true">↟</span><div><h4>폴짝!</h4><p>작게 웅크린 뒤 신나게 뛰어올라요.</p></div></div>
-      <div class="guide-card pink"><span class="guide-mark" aria-hidden="true">♡</span><div><h4>애교</h4><p>고개를 도리도리, 분홍 혀가 빼꼼.<br>수줍은 눈웃음을 보내요.</p></div></div>
-    </section>
-    <section class="guide-page" aria-labelledby="guide-rest-title" hidden>
-      <div class="guide-banner lavender"><span aria-hidden="true">☾</span><div><small>쉬는 시간도 포근하게</small><h3 id="guide-rest-title">꾸벅… 그리고 반가워!</h3></div><span class="guide-spark" aria-hidden="true">✧</span></div>
-      <div class="guide-card"><span class="guide-mark" aria-hidden="true">zZ</span><div><h4>잠깐 쉬면 졸음이 와요</h4><p>약 10초 동안 쉬면 눈을 감고 꾸벅꾸벅.<br>퍼렁이도 잠깐 충전이 필요하대요.</p></div></div>
-      <div class="guide-card pink"><span class="guide-mark" aria-hidden="true">☀</span><div><h4>살짝 만져 깨워 주세요</h4><p>눈을 느리게 깜빡이고 미소로 인사해요.<br>“음… 왔구나! ♡”</p></div></div>
-      <p class="guide-tip">설정에서 진동·소리·차분한 움직임을 고를 수 있어요.<br>키보드: 퍼렁이에 Tab으로 이동 후 Space / Enter.</p>
-    </section>
-  </div>
-  <footer class="guide-footer"><div class="guide-progress" role="status" aria-live="polite"><span id="guide-count" class="sr-only">1 / 3</span><i class="current"></i><i></i><i></i></div><div class="guide-nav"><button id="guide-prev" class="guide-back" hidden>이전</button><button id="guide-next" class="guide-next">다음 <span aria-hidden="true">→</span></button></div></footer>
-</dialog>
+
 <script type="module" src="./app.js"></script>
 </body></html>

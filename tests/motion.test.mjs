@@ -4,7 +4,6 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { ParangBreathing } from '../dist/parang-breathing.js';
-import { TouchGesture } from '../dist/touch-reactions.js';
 
 globalThis.requestAnimationFrame = () => 1;
 globalThis.cancelAnimationFrame = () => {};
@@ -63,25 +62,50 @@ test('wake greeting smiles, ends, and cancels on another action or pause', () =>
   m.pause(); assert.equal(m.greeting.mouth,0);
 });
 
-test('petting and tickling replace stretching, settle after release, and cancel silently', () => {
+test('pet and tickle buttons play without pressing and settle after three seconds', () => {
   for (const kind of ['pet','tickle']) for (const reduced of [false,true]) {
     const m=model(); m.reduced=reduced; m.speech={textContent:''};
-    const y=kind==='pet'?.26:.65;
-    m.squeeze(.45,y); m.gesture=new TouchGesture([.45,y],0);
-    const xs=kind==='pet'?[.47,.49,.51,.53]:[.48,.51,.48,.45,.48,.51];
-    xs.forEach((x,i)=>{ advance(m,.1); m.moveTouch([x,y],(i+1)*100); });
-    assert.equal(m.reaction.type,kind); assert.deepEqual(m.dragTarget,[0,0]);
-    advance(m,.2); assert.ok(m.greeting.smile>0); positiveMesh(m);
-    m.release(); advance(m,1.1);
+    advance(m,12);
+    assert.equal(m.play(kind),true);
+    assert.equal(m.element.dataset.sleeping,undefined);
+    assert.equal(m.reaction.type,kind); assert.equal(m.down,false);
+    advance(m,.4); assert.ok(m.greeting.smile>0); positiveMesh(m);
+    assert.ok(m.speech.textContent.length>0);
+    advance(m,2.7);
     assert.equal(m.reaction,null); assert.equal(m.speech.textContent,'');
     assert.equal(m.greeting.mouth,0);
-    m.reaction={type:kind,start:m.elapsed,until:m.elapsed+900}; m.release(true);
-    assert.equal(m.reaction,null);
+  }
+});
+
+test('reaction buttons respect lifecycle guards and touch or other actions interrupt them', () => {
+  for (const kind of ['pet','tickle']) {
+    const m=model(); m.speech={textContent:''};
+    m.ready=false; assert.equal(m.play(kind),false); m.ready=true;
+    m.squeeze(); assert.equal(m.play(kind),false); m.release();
+    m.play('jump'); assert.equal(m.play(kind),false); advance(m,2);
+    m.play(kind); m.squeeze(); assert.equal(m.reaction,null); m.release();
+    m.play(kind); assert.equal(m.play('wave'),true); assert.equal(m.reaction,null);
+    m.pause(); assert.equal(m.reaction,null); assert.equal(m.speech.textContent,'');
+    assert.equal(m.play(kind),false);
+    m.start(); m.play(kind); advance(m,.4); m.pause();
+    assert.equal(m.reaction,null); assert.equal(m.greeting.mouth,0);
+  }
+});
+
+test('head strokes and belly rubbing remain ordinary drags', () => {
+  for (const y of [.26,.65]) {
+    const m=model(); m.squeeze(.45,y);
+    for(const x of [.48,.51,.48,.45,.48,.51]) {
+      advance(m,.1); m.moveTouch([x,y]);
+      assert.equal(m.reaction,null);
+      assert.equal(m.dragTarget[0],Math.tanh((x-.45)*4)*.12);
+    }
+    m.release();
   }
 });
 
 test('actions wake the character and restart idle time when finished', () => {
-  for (const type of ['squish','jump','wave']) {
+  for (const type of ['squish','jump','wave','pet','tickle']) {
     const m=model(); advance(m,12);
     assert.equal(m.element.dataset.sleeping,'true');
     assert.equal(m.play(type),true);
