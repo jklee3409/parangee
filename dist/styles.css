@@ -38,6 +38,8 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
   cursor: grab; touch-action: none; user-select: none; -webkit-user-select: none;
 }
 .parang[data-pressed="true"] { cursor: grabbing; }
+/* WebViews may show a focus ring after the pointer handler calls focus(). */
+.parang[data-pointer-focus="true"]:focus { outline: none; }
 .parang img { display: block; width: 100%; height: 100%; visibility: hidden; }
 .parang canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
 .parang canvas.texture-fallback { opacity: 1; }

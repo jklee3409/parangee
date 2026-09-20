@@ -91,6 +91,7 @@ export class ParangBreathing {
     listen(this.motionQuery, 'change', (e) => { this.reduced = e.matches || Boolean(this.calm); });
     const position = (e) => { const r = element.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
     listen(element, 'pointerdown', (e) => {
+      element.dataset.pointerFocus = 'true';
       if (this.pointer !== null || (e.pointerType === 'mouse' && e.button !== 0)) return;
       const [x, y] = position(e);
       if (x < 0.24 || x > 0.86 || y < 0.19 || y > 0.94) return;
@@ -116,10 +117,11 @@ export class ParangBreathing {
       listen(element, name, (e) => { if (e.pointerId === this.pointer) this.release(name !== 'pointerup'); });
     }
     listen(element, 'keydown', (e) => {
+      delete element.dataset.pointerFocus;
       if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); if (!e.repeat) this.squeeze(0.51, 0.53); }
     });
     listen(element, 'keyup', (e) => { if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); this.release(); } });
-    listen(element, 'blur', () => this.release(true));
+    listen(element, 'blur', () => { delete element.dataset.pointerFocus; this.release(true); });
     listen(window, 'blur', () => this.pause());
     listen(window, 'focus', () => this.start());
     this.resizer = new ResizeObserver(() => this.resize());
