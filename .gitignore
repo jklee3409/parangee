@@ -18,6 +18,8 @@ report.*.json
 !.env.*.example
 
 # Test output and temporary caches
+.playwright-cli/
+output/playwright/
 coverage/
 .nyc_output/
 .cache/
