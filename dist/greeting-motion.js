@@ -1,7 +1,7 @@
 // A continuous original-texture greeting: curious tilt, two soft head turns,
-// a smiling pause, then a small bow. No cutouts, replacement pixels or new limbs.
+// a smiling pause, then a small bow. A separate layer adds the small open mouth.
 export const GREETING_DURATION = 3.6;
-export const restingGreeting = () => ({ roll: 0, turn: 0, nod: 0, smile: 0, blink: 0, blush: 0, tail: 0, tilt: 0, squash: 0 });
+export const restingGreeting = () => ({ roll: 0, turn: 0, nod: 0, smile: 0, blink: 0, blush: 0, tail: 0, tilt: 0, squash: 0, mouth: 0 });
 const smooth = value => {
   const t = Math.max(0, Math.min(1, value));
   return t * t * t * (t * (t * 6 - 15) + 10);
@@ -52,6 +52,7 @@ export function greetingPose(seconds, reduced = false) {
     smile: track(seconds, SMILE),
     blink: track(seconds, BLINK) * (reduced ? .35 : 1),
     blush: track(seconds, BLUSH),
+    mouth: fade(1.3,1.95,seconds) * (1-fade(2.55,3.2,seconds)),
     tail: tailSway(seconds) * movement,
     // The head and tail perform the greeting; keep shoulders and torso at rest.
     tilt: 0,
@@ -130,4 +131,33 @@ export function drawCheekBlush(ctx, model, breath) {
     gradient.addColorStop(1,'rgba(255,162,190,0)');
     ctx.fillStyle=gradient;ctx.fillRect(-1,-1,2,2);ctx.restore();
   }
+}
+
+// A small opening under the original W-shaped upper lip. All control points
+// follow the same deformation as the face, including touch and head turns.
+export function drawSmileMouth(ctx, model, breath) {
+  const opening = model.greeting?.mouth || 0;
+  if (opening <= .001) return;
+  const center = model.deform(.506,.419,breath);
+  const right = model.deform(.538,.419,breath);
+  const down = model.deform(.506,.449,breath);
+  ctx.save();
+  ctx.setTransform(right[0]-center[0],right[1]-center[1],(down[0]-center[0])*opening,(down[1]-center[1])*opening,center[0],center[1]);
+  ctx.globalAlpha = Math.min(1, opening*4);
+  ctx.beginPath();
+  ctx.moveTo(-1,0);
+  ctx.bezierCurveTo(-.55,.10,-.2,-.18,0,-.18);
+  ctx.bezierCurveTo(.2,-.18,.55,.10,1,0);
+  ctx.bezierCurveTo(.85,1.10,-.85,1.10,-1,0);
+  ctx.closePath();
+  const inside = ctx.createLinearGradient(0,0,0,1);
+  inside.addColorStop(0,'#102e57'); inside.addColorStop(1,'#364468');
+  ctx.fillStyle = inside; ctx.fill(); ctx.clip();
+  const pink = ctx.createLinearGradient(0,.35,0,1);
+  pink.addColorStop(0,'#ffb4c7'); pink.addColorStop(.55,'#f38fab'); pink.addColorStop(1,'#d96e91');
+  ctx.fillStyle = pink;
+  ctx.beginPath(); ctx.ellipse(0,.83,.56,.43,0,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle = '#d67898'; ctx.lineWidth = .035; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(0,.46); ctx.quadraticCurveTo(-.025,.53,0,.59); ctx.stroke();
+  ctx.restore();
 }

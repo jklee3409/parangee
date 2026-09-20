@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { ParangBreathing } from '../dist/parang-breathing.js';
+import { TouchGesture } from '../dist/touch-reactions.js';
 
 globalThis.requestAnimationFrame = () => 1;
 globalThis.cancelAnimationFrame = () => {};
@@ -45,10 +46,38 @@ test('idle sleep begins after ten seconds and touch wakes immediately', () => {
   assert.equal(m.element.dataset.sleeping,'true'); assert.match(m.speech.textContent,/Zzz/);
   advance(m,2); assert.equal(m.greeting.blink,.78);
   m.squeeze(); assert.equal(m.greeting.blink,0);
-  assert.equal(m.element.dataset.sleeping,undefined); assert.equal(m.speech.textContent,'');
+  assert.equal(m.element.dataset.sleeping,undefined); assert.match(m.speech.textContent,/왔구나/);
+  assert.equal(m.reaction.type,'wake');
   advance(m,12); assert.equal(m.greeting.blink,0);
   m.release(); advance(m,9.9); assert.equal(m.greeting.blink,0);
   advance(m,2); assert.ok(m.greeting.blink>.7);
+});
+
+test('wake greeting smiles, ends, and cancels on another action or pause', () => {
+  const m=model(); m.speech={textContent:''}; advance(m,12); m.squeeze(); m.release();
+  advance(m,.35); assert.ok(m.greeting.blink>.1);
+  advance(m,.6); assert.ok(m.greeting.smile>.8); positiveMesh(m);
+  advance(m,1.4); assert.equal(m.reaction,null); assert.equal(m.speech.textContent,'');
+  advance(m,12); m.squeeze(); m.release(); m.play('jump');
+  assert.equal(m.reaction,null); assert.equal(m.action.type,'jump');
+  m.pause(); assert.equal(m.greeting.mouth,0);
+});
+
+test('petting and tickling replace stretching, settle after release, and cancel silently', () => {
+  for (const kind of ['pet','tickle']) for (const reduced of [false,true]) {
+    const m=model(); m.reduced=reduced; m.speech={textContent:''};
+    const y=kind==='pet'?.26:.65;
+    m.squeeze(.45,y); m.gesture=new TouchGesture([.45,y],0);
+    const xs=kind==='pet'?[.47,.49,.51,.53]:[.48,.51,.48,.45,.48,.51];
+    xs.forEach((x,i)=>{ advance(m,.1); m.moveTouch([x,y],(i+1)*100); });
+    assert.equal(m.reaction.type,kind); assert.deepEqual(m.dragTarget,[0,0]);
+    advance(m,.2); assert.ok(m.greeting.smile>0); positiveMesh(m);
+    m.release(); advance(m,1.1);
+    assert.equal(m.reaction,null); assert.equal(m.speech.textContent,'');
+    assert.equal(m.greeting.mouth,0);
+    m.reaction={type:kind,start:m.elapsed,until:m.elapsed+900}; m.release(true);
+    assert.equal(m.reaction,null);
+  }
 });
 
 test('actions wake the character and restart idle time when finished', () => {
