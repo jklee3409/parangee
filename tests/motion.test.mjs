@@ -38,6 +38,23 @@ function positiveMesh(m) {
     assert.ok(area(a,b,c)>0 && area(b,d,c)>0, `fold at ${x},${y}`);
   }
 }
+test('touch blush builds while held, fades after release and clears on pause', () => {
+  const m=model();
+  m.squeeze(); assert.ok(m.touchBlush>0);
+  advance(m,.5); assert.ok(m.touchBlush>.95);
+  m.release(); advance(m,.3); assert.ok(m.touchBlush>.3&&m.touchBlush<.6);
+  advance(m,4); assert.equal(m.touchBlush,0);
+  m.squeeze(); m.pause(); assert.equal(m.touchBlush,0);
+});
+
+test('greeting speech clears on completion, interruption and pause', () => {
+  const m=model(); m.speech={textContent:''};
+  m.play('wave'); assert.ok(m.speech.textContent.length>0);
+  advance(m,3.7); assert.equal(m.speech.textContent,'');
+  m.play('wave'); m.squeeze(); assert.equal(m.speech.textContent,'');
+  m.release(); m.play('wave'); m.pause(); assert.equal(m.speech.textContent,'');
+});
+
 test('original character image remains byte-for-byte unchanged', () => {
   const original = execFileSync('git', ['show', 'HEAD:dist/assets/parang.png'], { maxBuffer: 20_000_000 });
   const hash = data => createHash('sha256').update(data).digest('hex');

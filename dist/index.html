@@ -2,20 +2,19 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#f6f8fb"><meta name="description" content="꾹 누르고, 쭉 늘리고, 포근하게 쉬어 가요. 내 손안의 퍼렁이 말랑이."><title>퍼렁이 · 내 손안의 말랑이</title><link rel="icon" href="data:,"><link rel="stylesheet" href="./styles.css">
+<script>try{const t=localStorage.getItem('parang-theme');document.documentElement.dataset.theme=t==='dark'||t!=='light'&&matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}catch{document.documentElement.dataset.theme=matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light'}</script>
 </head>
 <body>
 <main class="app">
-<header class="topbar"><a class="brand" href="./"><span class="brand-dot"></span>퍼렁이<span class="brand-sub">말랑한 쉼표</span></a><button id="settings-open" class="icon-button" aria-label="감각 설정 열기" aria-haspopup="dialog">☷</button></header>
+<header class="topbar"><a class="brand" href="./"><span class="brand-dot" aria-hidden="true"></span>퍼렁이</a><div class="topbar-actions"><button id="theme-toggle" class="icon-button" aria-label="다크 모드" aria-pressed="false"><span class="theme-icon" aria-hidden="true">☾</span></button><button id="settings-open" class="icon-button" aria-label="감각 설정 열기" aria-haspopup="dialog"><span aria-hidden="true">☷</span></button></div></header>
 <section class="playroom" aria-label="퍼렁이와 놀기">
-<div class="intro"><span class="eyebrow">YOUR LITTLE SOFT MOMENT</span><h1>오늘도, 말랑하게.</h1><p>아무 생각 없이 꾹. 퍼렁이가 곁에 있어요.</p></div>
-<div class="stage"><div id="bubble" class="bubble" role="status" aria-live="polite"></div>
-<button class="parang" id="parang" type="button" aria-label="퍼렁이 말랑이. 누르거나 드래그해서 늘려 보세요. 키보드는 스페이스 또는 엔터로 누를 수 있어요."><img src="./assets/parang.png" width="1327" height="1186" alt="파란 몸과 동그란 눈, 작은 손과 꼬리를 가진 퍼렁이" fetchpriority="high" draggable="false"><canvas aria-hidden="true"></canvas></button>
-<span class="stage-note" aria-hidden="true">조물조물, 마음까지 부드러워져요</span></div>
-<p class="touch-hint"><span></span>꾹 누르고 <b>·</b> 쭉 당기고 <b>·</b> 톡 놓아 보세요</p>
-<div class="actions" aria-label="퍼렁이 동작"><button id="squish" class="action"><span class="action-icon">◎</span><span>말랑말랑</span><small>기분 좋은 조물조물</small></button><button id="jump" class="action"><span class="action-icon">↟</span><span>폴짝!</span><small>신나게 뛰어올라요</small></button><button id="wave" class="action"><span class="action-icon">☺</span><span>애교</span><small>도리도리, 발그레</small></button></div>
-</section><footer>서두르지 않아도 괜찮아 <span>·</span> 잠깐의 말랑한 시간</footer>
+<div class="stage">
+<button class="parang" id="parang" type="button" aria-label="퍼렁이 말랑이. 누르거나 드래그해서 늘려 보세요. 키보드는 스페이스 또는 엔터로 누를 수 있어요."><img src="./assets/parang.png" width="1327" height="1186" alt="파란 몸과 동그란 눈, 작은 손과 꼬리를 가진 퍼렁이" fetchpriority="high" draggable="false"><canvas aria-hidden="true"></canvas><span class="speech" role="status" aria-live="polite"></span></button>
+</div>
+<div class="actions" aria-label="퍼렁이 동작"><button id="squish" class="action"><span class="action-icon" aria-hidden="true">◎</span><span>말랑말랑</span></button><button id="jump" class="action"><span class="action-icon" aria-hidden="true">↟</span><span>폴짝!</span></button><button id="wave" class="action"><span class="action-icon" aria-hidden="true">♡</span><span>애교</span></button></div>
+</section>
 </main>
-<dialog id="settings" aria-labelledby="settings-title"><div class="dialog-heading"><div><span class="eyebrow">MAKE YOURSELF COMFORTABLE</span><h2 id="settings-title">나만의 말랑함</h2></div><button id="settings-close" class="icon-button" aria-label="설정 닫기">×</button></div>
+<dialog id="settings" aria-labelledby="settings-title"><div class="dialog-heading"><h2 id="settings-title">설정</h2><button id="settings-close" class="icon-button" aria-label="설정 닫기">×</button></div>
 <label class="setting"><span>손끝의 진동<small id="haptic-help">누를 때도, 착지할 때도 부드럽게</small></span><input id="haptics" type="checkbox" role="switch" checked></label>
 <label class="setting"><span>말랑한 소리<small>작고 포근한 소리로 더 생생하게</small></span><input id="sound" type="checkbox" role="switch"></label>
 <label class="setting"><span>차분한 움직임<small>점프와 흔들림을 작게 줄여요</small></span><input id="calm" type="checkbox" role="switch"></label>

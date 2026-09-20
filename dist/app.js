@@ -1,10 +1,8 @@
 ﻿import { ParangBreathing } from './parang-breathing.js';
 import { SensoryFeedback } from './sensory-feedback.js';
-import { GREETING_DURATION } from './greeting-motion.js';
 const element = document.getElementById('parang');
 const model = new ParangBreathing(element);
 const sensory = new SensoryFeedback();
-const bubble = document.getElementById('bubble');
 const dialog = document.getElementById('settings');
 const defaults = { haptics: true, sound: false, calm: false, softness: 1 };
 const preferences = { ...defaults };
@@ -13,12 +11,23 @@ try {
   for (const key of ['haptics', 'sound', 'calm']) if (typeof stored?.[key] === 'boolean') preferences[key] = stored[key];
   if ([0, 1, 2].includes(stored?.softness)) preferences.softness = stored.softness;
 } catch { /* Private browsing and invalid storage use defaults. */ }
-let bubbleTimer, greetingIndex = 0;
-const greetings = ['(˶ᵔ ᵕ ᵔ˶) ♡', '(≧◡≦) ♡', '(づ ◕‿◕ )づ', '(｡♥‿♥｡)'];
-function say(text) {
-  clearTimeout(bubbleTimer); bubble.textContent = text; bubble.classList.add('visible');
-  bubbleTimer = setTimeout(() => { bubble.classList.remove('visible'); bubble.textContent = ''; }, (GREETING_DURATION + .25) * 1000);
+const themeToggle = document.getElementById('theme-toggle');
+const systemTheme = matchMedia('(prefers-color-scheme: dark)');
+let chosenTheme;
+try { const stored=localStorage.getItem('parang-theme'); if (['light','dark'].includes(stored)) chosenTheme=stored; } catch {}
+function applyTheme(theme) {
+  document.documentElement.dataset.theme=theme;
+  themeToggle.setAttribute('aria-pressed',String(theme==='dark'));
+  themeToggle.querySelector('span').textContent=theme==='dark'?'☀':'☾';
+  document.querySelector('meta[name="theme-color"]').content=theme==='dark'?'#101923':'#f3f7fa';
 }
+themeToggle.addEventListener('click',()=>{
+  chosenTheme=document.documentElement.dataset.theme==='dark'?'light':'dark';
+  applyTheme(chosenTheme);
+  try { localStorage.setItem('parang-theme',chosenTheme); } catch {}
+});
+systemTheme.addEventListener('change',event=>{if(!chosenTheme)applyTheme(event.matches?'dark':'light');});
+applyTheme(chosenTheme || (systemTheme.matches?'dark':'light'));
 function applySettings() {
   sensory.haptics = preferences.haptics; sensory.sound = preferences.sound;
   model.softness = preferences.softness; model.setCalm(preferences.calm);
@@ -49,13 +58,19 @@ element.addEventListener('parang-interaction', ({ detail }) => { sensory.unlock(
 for (const type of ['squish', 'jump', 'wave']) {
   document.getElementById(type).addEventListener('click', () => {
     sensory.unlock();
-    if (model.play(type) && type === 'wave') say(greetings[greetingIndex++ % greetings.length]);
+    if (model.play(type)) {
+      const button=document.getElementById(type);
+      button.classList.remove('is-playing');
+      void button.offsetWidth;
+      button.classList.add('is-playing');
+    }
   });
 }
+for(const button of document.querySelectorAll('.action'))button.addEventListener('animationend',()=>button.classList.remove('is-playing'));
 document.getElementById('settings-open').addEventListener('click', () => { model.pause(); sensory.stop(); dialog.showModal(); });
 document.getElementById('settings-close').addEventListener('click', () => dialog.close());
 dialog.addEventListener('close', () => { if (!document.hidden) model.start(); });
-const pause = () => { model.pause(); sensory.stop(); clearTimeout(bubbleTimer); bubble.classList.remove('visible'); bubble.textContent = ''; };
+const pause = () => { model.pause(); sensory.stop(); };
 window.addEventListener('pagehide', pause);
 window.addEventListener('pageshow', () => { if (!dialog.open) model.start(); });
 window.addEventListener('blur', () => sensory.stop());

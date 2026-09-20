@@ -1,5 +1,6 @@
 /** Framework-independent high-DPI breathing and squishy renderer. */
 import { MeshRenderer } from './mesh-renderer.js';
+import { characterTexture } from './character-texture.js';
 import { greetingPose, restingGreeting, deformGreeting, drawCheekBlush, GREETING_DURATION } from './greeting-motion.js';
 export class ParangBreathing {
   constructor(element, { period = 4200, expansion = 0.035, lift = 0.009, fps = 60 } = {}) {
@@ -7,6 +8,8 @@ export class ParangBreathing {
     if (![period, expansion, lift, fps].every(Number.isFinite) || period <= 0 || fps <= 0 || expansion < 0 || lift < 0) throw new RangeError('Invalid breathing options.');
     this.element = element;
     this.image = element.querySelector('img');
+    this.speech = element.querySelector('.speech');
+    this.touchBlush = 0;
     this.canvas = element.querySelector('canvas');
     if (!this.image || !this.canvas) throw new TypeError('The container must contain an img and a canvas.');
     this.blushLayer = document.createElement('canvas');
@@ -55,7 +58,11 @@ export class ParangBreathing {
     this.onVisibility = () => { if (document.hidden) this.pause(); else this.start(); };
     this.onLoad = () => {
       if (this.destroyed || !this.image.naturalWidth || this.ready) return;
-      try { this.mesh = new MeshRenderer(this.canvas, this.image); }
+      if (!this.texture) {
+        this.texture = characterTexture(this.image);
+        this.element.append(this.texture);
+      }
+      try { this.mesh = new MeshRenderer(this.canvas, this.texture); }
       catch {
         this.mesh = null;
         const old = this.canvas;
@@ -127,7 +134,8 @@ export class ParangBreathing {
   }
 
   start() { if (!this.destroyed) { this.running = true; this.schedule(); } }
-  pause() { this.release(true); this.action = null; this.autoRelease = 0; this.pose = { squash: 0, lift: 0, tilt: 0, wave: 0 }; this.greeting = restingGreeting(); this.blushContext?.clearRect(0,0,this.width,this.height); this.running = false; this.schedule(); }
+  pause() { this.release(true); this.action = null; this.autoRelease = 0; this.touchBlush = 0; this.say(''); this.pose = { squash: 0, lift: 0, tilt: 0, wave: 0 }; this.greeting = restingGreeting(); this.blushContext?.clearRect(0,0,this.width,this.height); this.running = false; this.schedule(); }
+  say(text) { if (this.speech) this.speech.textContent = text; }
   emit(type, strength = 1) { this.element.dispatchEvent(new CustomEvent('parang-interaction', { detail: { type, strength } })); }
   setCalm(value) { this.calm = value; this.reduced = value || this.motionQuery.matches; }
   play(type) {
@@ -135,6 +143,7 @@ export class ParangBreathing {
     if (type === 'squish') { this.squeeze(); this.autoRelease = this.elapsed + 700; return true; }
     if (!['jump', 'wave'].includes(type)) return false;
     this.action = { type, start: this.elapsed, landed: false };
+    this.say(type === 'wave' ? '너랑 노는 게 제일 좋아 ♡' : '');
     this.emit(type);
     return true;
   }
@@ -142,6 +151,8 @@ export class ParangBreathing {
     if (!this.ready || this.destroyed || !this.running) return;
     this.point = [x, y];
     this.action = null;
+    this.say('');
+    this.touchBlush = Math.max(this.touchBlush || 0, .3);
     this.autoRelease = 0;
     this.held = 0;
     this.lastStretch = 0;
@@ -215,6 +226,8 @@ export class ParangBreathing {
     while (remaining > 0) {
       const dt = Math.min(remaining, 1 / 120);
       this.held = this.down ? this.held + dt : 0;
+      this.touchBlush = (this.touchBlush || 0) + ((this.down ? 1 : 0) - (this.touchBlush || 0)) * (1 - Math.exp(-dt * (this.down ? 8 : 2.4)));
+      if (this.touchBlush < .001) this.touchBlush = 0;
       this.rippleAge += dt;
       const k = this.reduced ? 180 : [145, 95,  65][this.softness], damping = this.reduced ? 29 : [14, 10, 8][this.softness];
       const target = this.down ? this.pressure * (.75 + .25 * (1 - Math.exp(-this.held * 3))) : 0;
@@ -262,7 +275,7 @@ export class ParangBreathing {
       this.greeting = greetingPose(t, this.reduced);
       pose.tilt = this.greeting.tilt;
       pose.squash = this.greeting.squash;
-      if (t >= GREETING_DURATION) this.action = null;
+      if (t >= GREETING_DURATION) { this.action = null; this.say(''); }
     }
     if (this.reduced && jumping) for (const key of Object.keys(pose)) pose[key] *= .18;
   }
@@ -297,8 +310,9 @@ export class ParangBreathing {
     const ctx = this.context;
     const { width: w, height: h } = this;
     ctx.clearRect(0, 0, w, h);
-    ctx.drawImage(this.image, 0, 0, w, h);
-    if (!this.action && breath + Math.abs(this.press) + this.memory + Math.abs(this.drag[0]) + Math.abs(this.drag[1]) + this.ripple * Math.exp(-this.rippleAge * 5) < 0.001) return;
+    if (!this.action && breath + Math.abs(this.press) + this.memory + Math.abs(this.drag[0]) + Math.abs(this.drag[1]) + this.ripple * Math.exp(-this.rippleAge * 5) < 0.001) {
+      ctx.drawImage(this.texture, 0, 0, w, h); return;
+    }
     const nx = this.action?.type === 'wave' ? 48 : 28, ny = this.action?.type === 'wave' ? 44 : 26;
     const points = Array.from({ length: ny + 1 }, (_, y) =>
       Array.from({ length: nx + 1 }, (_, x) => this.deform(x / nx, y / ny, breath)));
@@ -339,7 +353,7 @@ export class ParangBreathing {
     ctx.closePath();
     ctx.clip();
     ctx.transform(m, n, o, q, A[0] - m * ax - o * ay, A[1] - n * ax - q * ay);
-    ctx.drawImage(this.image, 0, 0, this.width, this.height);
+    ctx.drawImage(this.texture, 0, 0, this.width, this.height);
     ctx.restore();
   }
 }

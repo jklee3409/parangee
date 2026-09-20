@@ -1,7 +1,7 @@
 /** Dense original-texture mesh rendered in one GPU draw call. */
 export class MeshRenderer {
   constructor(canvas, image) {
-    this.gl = canvas.getContext('webgl', { alpha: false, antialias: true, depth: false });
+    this.gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: false, antialias: true, depth: false });
     if (!this.gl) throw new Error('WebGL unavailable');
     const gl = this.gl;
     const shader = (type, source) => {
@@ -50,7 +50,7 @@ export class MeshRenderer {
       this.vertices[i++] = u; this.vertices[i++] = v;
     }
     gl.viewport(0, 0, model.width, model.height);
-    gl.clearColor(.96, .97, .98, 1); gl.clear(gl.COLOR_BUFFER_BIT);
+    gl.clearColor(0, 0, 0, 0); gl.clear(gl.COLOR_BUFFER_BIT);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.buffer); gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.vertices);
     gl.drawElements(gl.TRIANGLES, this.count, gl.UNSIGNED_SHORT, 0);
   }

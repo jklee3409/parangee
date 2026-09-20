@@ -1,7 +1,7 @@
 // A continuous original-texture greeting: curious tilt, two soft head turns,
 // a smiling pause, then a small bow. No cutouts, replacement pixels or new limbs.
 export const GREETING_DURATION = 3.6;
-export const restingGreeting = () => ({ roll: 0, turn: 0, nod: 0, smile: 0, blink: 0, blush: 0, tilt: 0, squash: 0 });
+export const restingGreeting = () => ({ roll: 0, turn: 0, nod: 0, smile: 0, blink: 0, blush: 0, tail: 0, tilt: 0, squash: 0 });
 const smooth = value => {
   const t = Math.max(0, Math.min(1, value));
   return t * t * t * (t * (t * 6 - 15) + 10);
@@ -19,11 +19,20 @@ const track = (time, keys) => {
 // Unequal arcs and a brief affectionate hold avoid a repeating metronome motion.
 const ROLL = [[0,0],[.95,.004],[1.95,-.004],[2.80,.002],[3.6,0]];
 // Yaw in radians: turn around the neck's vertical axis, rather than sliding.
-const TURN = [[0,0],[.15,0],[.95,.05],[1.95,-.045],[2.80,.025],[3.6,0]];
+const TURN = [[0,0],[.15,0],[.95,.175],[1.95,-.1575],[2.80,.0875],[3.6,0]];
 const NOD = [[0,0],[.23,.002],[.58,-.003],[1.75,-.002],[2.04,0],[2.40,.009],[2.82,-.001],[3.6,0]];
 const SMILE = [[0,0],[.45,.55],[1.55,.85],[2.18,1],[2.65,.8],[3.6,0]];
 const BLINK = [[0,0],[1.99,0],[2.22,.62],[2.33,.62],[2.63,0],[3.6,0]];
 const BLUSH = [[0,0],[.38,.35],[.8,.8],[1.65,1],[2.65,.7],[3.6,0]];
+
+function tailSway(seconds) {
+  // Start around a .95 s cycle, then gently slow down as the greeting settles.
+  // Quintic envelopes keep position, velocity and acceleration smooth at rest.
+  const cycles=seconds/.95-.012*seconds*seconds;
+  const envelope=fade(0,.55,seconds) * (1-fade(2.55,GREETING_DURATION,seconds));
+  const amplitude=.12 * (1-.12*fade(1.5,2.8,seconds));
+  return amplitude * Math.sin(cycles*Math.PI*2) * envelope;
+}
 
 function headDepth(x, y) {
   const u=(x-.506)/.20, v=(y-.346)/.18;
@@ -43,14 +52,15 @@ export function greetingPose(seconds, reduced = false) {
     smile: track(seconds, SMILE),
     blink: track(seconds, BLINK) * (reduced ? .35 : 1),
     blush: track(seconds, BLUSH),
-    // Only the head performs the greeting; keep shoulders and torso at rest.
+    tail: tailSway(seconds) * movement,
+    // The head and tail perform the greeting; keep shoulders and torso at rest.
     tilt: 0,
     squash: 0,
   };
 }
 
 export function deformGreeting(x, y, pose, aspect = 1327 / 1186) {
-  if (!pose || !(pose.roll || pose.turn || pose.nod || pose.smile || pose.blink)) return [x, y];
+  if (!pose || !(pose.roll || pose.turn || pose.nod || pose.smile || pose.blink || pose.tail)) return [x, y];
   let fx = x, fy = y;
   // Lift only the original mouth corners and cheeks, retaining its W-shaped smile.
   for (const cx of [.452, .561]) {
@@ -70,7 +80,7 @@ export function deformGreeting(x, y, pose, aspect = 1327 / 1186) {
   let depth=headDepth(fx,fy);
   // Keep the glossy eyes rounded instead of stretching them with the soft cheek.
   for (const eye of eyeDepths) {
-    const rigidity=.42*Math.exp(-(((fx-eye.x)/.027)**4)-((fy-.337)/.030)**4);
+    const rigidity=.8*Math.exp(-(((fx-eye.x)/.027)**4)-((fy-.337)/.030)**4);
     depth+=(eye.depth-depth)*rigidity;
   }
   const horizontal=(fx-.506)*aspect;
@@ -88,6 +98,16 @@ export function deformGreeting(x, y, pose, aspect = 1327 / 1186) {
   const cos=Math.cos(pose.roll),sin=Math.sin(pose.roll);
   fx += ((dx*(cos-1)-dy*sin)/aspect) * head;
   fy += (dx*sin+dy*(cos-1)+pose.nod) * head;
+  // The visible tail lies behind the right arm. Feather along that diagonal
+  // seam, anchoring the base while the tip swings around it.
+  const tailEdge=Math.max(.69,.68+(y-.50)*.45);
+  const tailMask=fade(tailEdge+.015,tailEdge+.075,x)
+    * (1-fade(.86,.96,x)) * fade(.36,.44,y) * (1-fade(.67,.75,y));
+  const tailAngle=pose.tail || 0;
+  const tx=(x-.72)*aspect,ty=y-.68;
+  const tailCos=Math.cos(tailAngle),tailSin=Math.sin(tailAngle);
+  fx += (tx*(tailCos-1)-ty*tailSin)/aspect * tailMask;
+  fy += (tx*tailSin+ty*(tailCos-1)) * tailMask;
   return [fx,fy];
 }
 
@@ -95,7 +115,7 @@ export function deformGreeting(x, y, pose, aspect = 1327 / 1186) {
 // Local deformed axes attach each soft oval to its cheek throughout the head turn.
 export function drawCheekBlush(ctx, model, breath) {
   ctx.clearRect(0, 0, model.width, model.height);
-  const amount = model.greeting?.blush || 0;
+  const amount = Math.min(1, Math.max(model.greeting?.blush || 0, model.touchBlush || 0));
   if (amount <= 0) return;
   for (const cx of [.387, .624]) {
     const center=model.deform(cx,.388,breath);
