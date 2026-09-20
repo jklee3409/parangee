@@ -28,6 +28,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .topbar-actions { display: flex; gap: 10px; }
 .icon-button { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--border); border-radius: 15px; background: var(--surface); font-size: 25px; line-height: 1; transition: background .2s, transform .2s; }
 .icon-button:active { transform: scale(.94); }
+.help-button { font-size: 21px; font-weight: 700; color: var(--accent); }
 .playroom { flex: 1; min-height: 0; display: flex; flex-direction: column; }
 .stage { flex: 1; min-height: 0; width: 100%; position: relative; isolation: isolate; }
 .parang {
@@ -82,6 +83,37 @@ output { color: var(--accent); font-size: 12px; }
 input[type=range] { width: 100%; accent-color: var(--accent); }
 .range-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 8px; }
 .settings-note { text-align: center; font-size: 11px; color: var(--muted); margin-top: 28px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.play-guide { padding: 24px; width: min(460px, calc(100% - 28px)); overscroll-behavior: contain; }
+.guide-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 12px; }
+.guide-eyebrow { color: var(--accent); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.guide-top .icon-button { flex-shrink: 0; background: transparent; }
+.play-guide h2 { font-size: clamp(20px, 5.8vw, 26px); letter-spacing: -.05em; }
+#guide-intro { color: var(--muted); font-size: 14px; line-height: 1.7; margin: 12px 0 22px; }
+.guide-banner { display: flex; align-items: center; gap: 14px; padding: 20px 16px; border-radius: 22px; background: linear-gradient(125deg, #e5f4ff, #eef3ff); color: #28577e; margin-bottom: 18px; }
+.guide-banner > span:first-child { font-size: 36px; }
+.guide-banner small { font-size: 11px; opacity: .8; }
+.guide-banner h3 { font-size: 18px; margin: 5px 0 0; letter-spacing: -.04em; }
+.guide-spark { margin-left: auto; color: #85b8df; font-size: 30px; }
+.guide-card { --guide-tint: #eaf5fc; --guide-ink: #337ead; display: flex; align-items: flex-start; gap: 12px; padding: 14px 0; }
+.guide-card.pink { --guide-tint: #fcecf2; --guide-ink: #b95682; }
+.guide-card.lavender { --guide-tint: #f0edfb; --guide-ink: #8066b6; }
+.guide-mark { width: 38px; height: 38px; flex-shrink: 0; display: grid; place-items: center; background: var(--guide-tint); color: var(--guide-ink); border-radius: 13px; font-size: 23px; }
+.guide-card h4 { font-size: 14px; margin: 0 0 7px; }
+.guide-card p { color: var(--muted); font-size: 12px; line-height: 1.75; margin: 0; word-break: keep-all; overflow-wrap: anywhere; }
+.guide-tip { background: var(--bg); border-radius: 14px; padding: 12px; color: var(--muted); font-size: 11px; line-height: 1.8; margin: 14px 0 0; }
+.guide-footer { display: flex; justify-content: space-between; align-items: center; gap: 12px; border-top: 1px solid var(--border); padding-top: 18px; margin-top: 22px; }
+.guide-progress, .guide-nav { display: flex; align-items: center; gap: 8px; }
+.guide-progress i { width: 6px; height: 6px; border-radius: 10px; background: var(--border); }
+.guide-progress i.current { width: 20px; background: var(--accent); }
+.guide-next, .guide-back { border: 0; border-radius: 14px; padding: 12px 16px; min-height: 44px; font-size: 13px; font-weight: 700; }
+.guide-next { background: #287dc1; color: white; }
+.guide-back { background: transparent; color: var(--muted); }
+[data-theme="dark"] .guide-banner { background: linear-gradient(125deg, #243d54, #30344e); color: #c7e4fb; }
+[data-theme="dark"] .guide-card { --guide-tint: #253f55; --guide-ink: #8ccafa; }
+[data-theme="dark"] .guide-card.pink { --guide-tint: #472e3e; --guide-ink: #eda7c1; }
+[data-theme="dark"] .guide-card.lavender { --guide-tint: #36304c; --guide-ink: #bba8f0; }
+@media (max-width: 380px) { .topbar-actions { gap: 6px; } .brand { font-size: 22px; gap: 7px; } .play-guide { padding: 18px; } .guide-banner { gap: 10px; padding: 16px 12px; } }
 @media (min-width: 800px) { .app { padding: 28px 40px; } .actions { margin-top: 12px; } .action { flex-direction: row; gap: 14px; min-height: 80px; font-size: 15px; } }
 @media (max-width: 380px) { .app { padding-left: 16px; padding-right: 16px; } .actions { gap: 8px; } .action { min-height: 92px; border-radius: 20px; font-size: 13px; } }
 @media (max-height: 500px) and (orientation: landscape) { .app { min-height: 320px; padding-top: 10px; padding-bottom: 10px; } .topbar { flex-basis: 44px; } .action { flex-direction: row; min-height: 58px; padding: 8px; } .parang { width: min(135vw, calc((100svh - 130px) * 1.125)); } .speech { padding: 7px 13px; font-size: 13px; } }

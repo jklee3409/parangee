@@ -4,6 +4,8 @@ const element = document.getElementById('parang');
 const model = new ParangBreathing(element);
 const sensory = new SensoryFeedback();
 const dialog = document.getElementById('settings');
+const guide = document.getElementById('play-guide');
+const modalOpen = () => dialog.open || guide.open;
 const defaults = { haptics: true, sound: false, calm: false, softness: 1 };
 const preferences = { ...defaults };
 try {
@@ -69,10 +71,35 @@ for (const type of ['squish', 'jump', 'wave']) {
 for(const button of document.querySelectorAll('.action'))button.addEventListener('animationend',()=>button.classList.remove('is-playing'));
 document.getElementById('settings-open').addEventListener('click', () => { model.pause(); sensory.stop(); dialog.showModal(); });
 document.getElementById('settings-close').addEventListener('click', () => dialog.close());
-dialog.addEventListener('close', () => { if (!document.hidden) model.start(); });
+dialog.addEventListener('close', () => { if (!document.hidden && !modalOpen()) model.start(); });
+const pages = [...guide.querySelectorAll('.guide-page')];
+const next = document.getElementById('guide-next');
+const previous = document.getElementById('guide-prev');
+let guideStep = 0;
+function showGuideStep(index) {
+  guideStep = index;
+  pages.forEach((page, i) => { page.hidden = i !== index; });
+  guide.querySelectorAll('.guide-progress i').forEach((dot, i) => dot.classList.toggle('current', i === index));
+  document.getElementById('guide-count').textContent = `${index+1} / ${pages.length}`;
+  previous.hidden = index === 0;
+  next.textContent = index === pages.length-1 ? '같이 놀자 ♡' : '다음 →';
+  guide.scrollTop = 0;
+}
+document.getElementById('help-open').addEventListener('click', () => {
+  model.pause(); sensory.stop(); showGuideStep(0); guide.showModal();
+});
+document.getElementById('help-close').addEventListener('click', () => guide.close());
+next.addEventListener('click', () => {
+  if (guideStep === pages.length-1) guide.close(); else showGuideStep(guideStep+1);
+});
+previous.addEventListener('click', () => {
+  showGuideStep(Math.max(0, guideStep-1));
+  if (previous.hidden) next.focus();
+});
+guide.addEventListener('close', () => { if (!document.hidden && !modalOpen()) model.start(); });
 const pause = () => { model.pause(); sensory.stop(); };
 window.addEventListener('pagehide', pause);
-window.addEventListener('pageshow', () => { if (!dialog.open) model.start(); });
+window.addEventListener('pageshow', () => { if (!modalOpen()) model.start(); });
 window.addEventListener('blur', () => sensory.stop());
-window.addEventListener('focus', () => { if (dialog.open) model.pause(); });
-document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); else if (dialog.open) model.pause(); });
+window.addEventListener('focus', () => { if (modalOpen()) model.pause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); else if (modalOpen()) model.pause(); });
