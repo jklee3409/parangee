@@ -1,6 +1,7 @@
 /** Framework-independent high-DPI breathing and squishy renderer. */
 import { MeshRenderer } from './mesh-renderer.js';
 import { characterTexture } from './character-texture.js';
+import { sleepyPose } from './idle-motion.js';
 import { greetingPose, restingGreeting, deformGreeting, drawCheekBlush, GREETING_DURATION } from './greeting-motion.js';
 export class ParangBreathing {
   constructor(element, { period = 4200, expansion = 0.035, lift = 0.009, fps = 60 } = {}) {
@@ -22,6 +23,7 @@ export class ParangBreathing {
     this.options = { period, expansion, lift, fps };
     this.frame = 0;
     this.elapsed = 0;
+    this.lastActivity = 0;
     this.lastDraw = 0;
     this.lastTime = null;
     this.visible = true;
@@ -134,14 +136,23 @@ export class ParangBreathing {
   }
 
   start() { if (!this.destroyed) { this.running = true; this.schedule(); } }
-  pause() { this.release(true); this.action = null; this.autoRelease = 0; this.touchBlush = 0; this.say(''); this.pose = { squash: 0, lift: 0, tilt: 0, wave: 0 }; this.greeting = restingGreeting(); this.blushContext?.clearRect(0,0,this.width,this.height); this.running = false; this.schedule(); }
+  pause() { this.release(true); this.wake(); this.action = null; this.autoRelease = 0; this.touchBlush = 0; this.say(''); this.pose = { squash: 0, lift: 0, tilt: 0, wave: 0 }; this.greeting = restingGreeting(); this.blushContext?.clearRect(0,0,this.width,this.height); this.running = false; this.schedule(); }
   say(text) { if (this.speech) this.speech.textContent = text; }
+  wake() {
+    this.lastActivity = this.elapsed;
+    this.greeting = restingGreeting();
+    if (this.element.dataset.sleeping) {
+      delete this.element.dataset.sleeping;
+      this.say('');
+    }
+  }
   emit(type, strength = 1) { this.element.dispatchEvent(new CustomEvent('parang-interaction', { detail: { type, strength } })); }
   setCalm(value) { this.calm = value; this.reduced = value || this.motionQuery.matches; }
   play(type) {
     if (!this.ready || !this.running || this.destroyed || this.down || this.action) return false;
     if (type === 'squish') { this.squeeze(); this.autoRelease = this.elapsed + 700; return true; }
     if (!['jump', 'wave'].includes(type)) return false;
+    this.wake();
     this.action = { type, start: this.elapsed, landed: false };
     this.say(type === 'wave' ? '너랑 노는 게 제일 좋아 ♡' : '');
     this.emit(type);
@@ -149,6 +160,7 @@ export class ParangBreathing {
   }
   squeeze(x = 0.51, y = 0.53) {
     if (!this.ready || this.destroyed || !this.running) return;
+    this.wake();
     this.point = [x, y];
     this.action = null;
     this.say('');
@@ -169,6 +181,7 @@ export class ParangBreathing {
     this.pointer = null;
     if (pointer !== null && this.element.hasPointerCapture(pointer)) this.element.releasePointerCapture(pointer);
     if (wasDown) {
+      this.lastActivity = this.elapsed;
       this.ripple = Math.min(1, Math.max(.2, this.press) + Math.hypot(...this.drag) * 2);
       this.rippleAge = 0;
       if (!silent) this.emit('release', this.ripple);
@@ -255,7 +268,16 @@ export class ParangBreathing {
   updatePose() {
     const pose = this.pose = { squash: 0, lift: 0, tilt: 0, wave: 0 };
     this.greeting = restingGreeting();
-    if (!this.action) return;
+    // Count idle time only after the current press or animation finishes.
+    if (this.down || this.action) this.lastActivity = this.elapsed;
+    if (!this.action) {
+      this.greeting = sleepyPose(this.elapsed - (this.lastActivity ?? 0), this.reduced);
+      if (this.greeting.blink > 0 && !this.element.dataset.sleeping) {
+        this.element.dataset.sleeping = 'true';
+        this.say('졸려… Zzz');
+      }
+      return;
+    }
     const t = (this.elapsed - this.action.start) / 1000;
     const jumping = this.action.type === 'jump';
     if (jumping) {
@@ -310,7 +332,7 @@ export class ParangBreathing {
     const ctx = this.context;
     const { width: w, height: h } = this;
     ctx.clearRect(0, 0, w, h);
-    if (!this.action && breath + Math.abs(this.press) + this.memory + Math.abs(this.drag[0]) + Math.abs(this.drag[1]) + this.ripple * Math.exp(-this.rippleAge * 5) < 0.001) {
+    if (!this.action && !this.greeting.blink && breath + Math.abs(this.press) + this.memory + Math.abs(this.drag[0]) + Math.abs(this.drag[1]) + this.ripple * Math.exp(-this.rippleAge * 5) < 0.001) {
       ctx.drawImage(this.texture, 0, 0, w, h); return;
     }
     const nx = this.action?.type === 'wave' ? 48 : 28, ny = this.action?.type === 'wave' ? 44 : 26;

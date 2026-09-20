@@ -38,6 +38,50 @@ function positiveMesh(m) {
     assert.ok(area(a,b,c)>0 && area(b,d,c)>0, `fold at ${x},${y}`);
   }
 }
+test('idle sleep begins after ten seconds and touch wakes immediately', () => {
+  const m=model(); m.speech={textContent:''};
+  advance(m,9.9); assert.equal(m.greeting.blink,0);
+  advance(m,.4); assert.ok(m.greeting.blink>0&&m.greeting.blink<.1);
+  assert.equal(m.element.dataset.sleeping,'true'); assert.match(m.speech.textContent,/Zzz/);
+  advance(m,2); assert.equal(m.greeting.blink,.78);
+  m.squeeze(); assert.equal(m.greeting.blink,0);
+  assert.equal(m.element.dataset.sleeping,undefined); assert.equal(m.speech.textContent,'');
+  advance(m,12); assert.equal(m.greeting.blink,0);
+  m.release(); advance(m,9.9); assert.equal(m.greeting.blink,0);
+  advance(m,2); assert.ok(m.greeting.blink>.7);
+});
+
+test('actions wake the character and restart idle time when finished', () => {
+  for (const type of ['squish','jump','wave']) {
+    const m=model(); advance(m,12);
+    assert.equal(m.element.dataset.sleeping,'true');
+    assert.equal(m.play(type),true);
+    assert.equal(m.element.dataset.sleeping,undefined);
+    assert.equal(m.greeting.blink,0);
+    advance(m,4); assert.equal(m.action,null);
+    advance(m,6); assert.equal(m.element.dataset.sleeping,undefined);
+    advance(m,4); assert.equal(m.element.dataset.sleeping,'true');
+  }
+});
+
+test('pause clears sleep and resuming grants a fresh ten seconds', () => {
+  const m=model(); m.speech={textContent:''}; advance(m,12);
+  m.pause(); assert.equal(m.greeting.blink,0);
+  assert.equal(m.element.dataset.sleeping,undefined); assert.equal(m.speech.textContent,'');
+  m.start(); advance(m,9.9); assert.equal(m.greeting.blink,0);
+  advance(m,2); assert.ok(m.greeting.blink>.7);
+});
+
+test('sleeping eyes and nod keep the mesh unfolded, including reduced motion', () => {
+  for (const reduced of [false,true]) {
+    const m=model(); m.reduced=reduced;
+    for(let time=10;time<17;time+=.2) {
+      m.elapsed=time*1000; m.updatePose(); positiveMesh(m);
+      assert.ok(m.greeting.nod <= (reduced ? .0024 : .012) + 1e-12);
+    }
+  }
+});
+
 test('touch blush builds while held, fades after release and clears on pause', () => {
   const m=model();
   m.squeeze(); assert.ok(m.touchBlush>0);
